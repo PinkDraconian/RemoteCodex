@@ -1,0 +1,16 @@
+{
+  "name": "codex-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:linux-app": "bash scripts/build-linux-app-docker.sh",
+    "doctor": "node scripts/doctor.mjs",
+    "start": "node --env-file=.env server.js"
+  },
+  "dependencies": {
+    "@electron/asar": "^4.0.1",
+    "7zip-bin-full": "^26.0.1",
+    "ws": "^8.18.3"
+  }
+}

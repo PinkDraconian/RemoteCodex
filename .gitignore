@@ -1,0 +1,11 @@
+.env
+.cache/
+node_modules/
+
+vendor/codex-desktop-linux/codex-app/
+vendor/codex-desktop-linux/Codex.dmg
+
+.DS_Store
+*.log
+*.pid
+*.swp

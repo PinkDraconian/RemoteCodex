@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Codex Viewer</title>
+    <link rel="stylesheet" href="/app.css" />
+  </head>
+  <body>
+    <div id="screen" class="screen"></div>
+    <form id="logoutForm" class="logout-form" method="post" action="/logout">
+      <button type="submit" class="logout-button">Log Out</button>
+    </form>
+    <div id="errorBanner" class="error-banner" hidden></div>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

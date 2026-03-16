@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Codex Login</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(180deg, #0c0d10, #151922);
+        color: #f5f7fa;
+        font: 16px/1.4 sans-serif;
+      }
+
+      .card {
+        width: min(420px, calc(100vw - 32px));
+        padding: 28px;
+        border-radius: 16px;
+        background: rgba(21, 26, 34, 0.96);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+      }
+
+      h1,
+      p {
+        margin: 0 0 16px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .muted {
+        color: #a6b0bf;
+      }
+
+      .error {
+        margin-bottom: 16px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: rgba(150, 30, 30, 0.22);
+        color: #ffb4b4;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 14px;
+      }
+
+      span {
+        display: block;
+        margin-bottom: 6px;
+        color: #d7dde7;
+      }
+
+      input {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: #0d1016;
+        color: inherit;
+        font: inherit;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px 14px;
+        border: 0;
+        border-radius: 10px;
+        background: #f2f4f8;
+        color: #11151d;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>Codex Login</h1>
+      <p class="muted">Sign in to access the local Codex viewer.</p>
+      <div id="error" class="error" hidden>Invalid username or password.</div>
+      <form method="post" action="/login">
+        <label>
+          <span>Username</span>
+          <input name="username" type="text" autocomplete="username" required />
+        </label>
+        <label>
+          <span>Password</span>
+          <input
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            required
+          />
+        </label>
+        <button type="submit">Log In</button>
+      </form>
+    </main>
+    <script>
+      const error = document.querySelector("#error");
+      if (new URLSearchParams(window.location.search).get("error") === "invalid") {
+        error.hidden = false;
+      }
+    </script>
+  </body>
+</html>

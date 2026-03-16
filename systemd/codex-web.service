@@ -1,0 +1,15 @@
+[Unit]
+Description=Codex Web Viewer
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/pinkdraconian/CodexWeb
+ExecStart=/home/pinkdraconian/CodexWeb/scripts/run-service.sh
+Restart=always
+RestartSec=2
+Environment=HOME=/home/pinkdraconian
+
+[Install]
+WantedBy=default.target
