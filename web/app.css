@@ -8,11 +8,12 @@ body {
   width: 100%;
   height: 100%;
   background: #000;
+  overflow: hidden;
 }
 
 .screen {
-  width: 100%;
-  height: 100vh;
+  position: fixed;
+  inset: 0;
   overflow: hidden;
   background: #000;
 }
@@ -20,23 +21,6 @@ body {
 .screen canvas {
   width: 100%;
   height: 100%;
-}
-
-.logout-form {
-  position: fixed;
-  top: 12px;
-  right: 12px;
-  z-index: 10;
-}
-
-.logout-button {
-  border: 0;
-  border-radius: 999px;
-  padding: 10px 14px;
-  background: rgba(17, 21, 29, 0.82);
-  color: #fff;
-  font: 13px/1 sans-serif;
-  cursor: pointer;
 }
 
 .error-banner {

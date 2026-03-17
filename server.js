@@ -37,6 +37,9 @@ const config = {
   autoStart: process.env.AUTO_START !== "false",
   windowManagerCommand: process.env.WINDOW_MANAGER_CMD || "",
   xvncCommand: process.env.XVNC_CMD || "",
+  appArgs:
+    process.env.CODEX_APP_ARGS ||
+    "--start-maximized --window-position=0,0 --window-size=1920,1080",
   authUsername: process.env.AUTH_USERNAME || "admin",
   authPassword: process.env.AUTH_PASSWORD || "",
   sessionTtlMs: Number(process.env.SESSION_TTL_HOURS || 12) * 60 * 60 * 1000,
@@ -51,12 +54,14 @@ const state = {
   startedAt: null,
   processes: {
     app: null,
+    resize: null,
     wm: null,
     xserver: null,
   },
 };
 
 const sessions = new Map();
+const httpSockets = new Set();
 
 const server = http.createServer(handleRequest);
 const wsServer = new WebSocketServer({ noServer: true });
@@ -68,6 +73,13 @@ main().catch((error) => {
 
 async function main() {
   await assertPaths();
+
+  server.on("connection", (socket) => {
+    httpSockets.add(socket);
+    socket.on("close", () => {
+      httpSockets.delete(socket);
+    });
+  });
 
   server.on("upgrade", (request, socket, head) => {
     if (!request.url?.startsWith("/websockify")) {
@@ -443,8 +455,6 @@ async function launchStack() {
       "-AlwaysShared",
       "-SecurityTypes",
       "None",
-      "-AcceptCutText=0",
-      "-SendCutText=0",
       "-AcceptSetDesktopSize=0",
     ],
     { env: process.env },
@@ -466,16 +476,21 @@ async function launchStack() {
     );
   }
 
-  state.processes.app = spawnManagedShell("app", config.appCommand, {
+  state.processes.app = spawnManagedShell("app", buildAppLaunchCommand(), {
     env: baseEnv,
   });
+  state.processes.resize = spawnManagedProcess(
+    "resize",
+    ["python3", path.join(rootDir, "scripts", "resize-codex-window.py")],
+    { env: baseEnv, allowSuccessfulExit: true },
+  );
 
   state.status = "running";
   state.startedAt = new Date().toISOString();
 }
 
 async function stopStack() {
-  const names = ["app", "wm", "xserver"];
+  const names = ["resize", "app", "wm", "xserver"];
   for (const name of names) {
     const proc = state.processes[name];
     if (!proc) {
@@ -497,12 +512,21 @@ function spawnManagedShell(name, command, options) {
   return spawnManagedProcess(name, ["bash", "-lc", command], options);
 }
 
+function buildAppLaunchCommand() {
+  const args = config.appArgs.trim();
+  if (!args) {
+    return config.appCommand;
+  }
+  return `${config.appCommand} ${args}`;
+}
+
 function spawnManagedProcess(name, argv, options) {
   const [command, ...args] = argv;
+  const { allowSuccessfulExit = false, ...spawnOptions } = options || {};
   const proc = spawn(command, args, {
     cwd: rootDir,
     stdio: ["ignore", "pipe", "pipe"],
-    ...options,
+    ...spawnOptions,
   });
 
   proc.stdout.on("data", (chunk) => {
@@ -514,6 +538,10 @@ function spawnManagedProcess(name, argv, options) {
   proc.on("exit", (code, signal) => {
     const expectedIdle = state.status === "idle";
     state.processes[name] = null;
+    const successfulExit = signal == null && code === 0;
+    if (allowSuccessfulExit && successfulExit) {
+      return;
+    }
     if (!expectedIdle && state.status !== "error") {
       state.status = "error";
       state.lastError = `${name} exited (${signal || code})`;
@@ -617,6 +645,7 @@ function getStatusPayload() {
       depth: config.depth,
       httpPort: config.httpPort,
       vncPort: config.vncPort,
+      appArgs: config.appArgs,
       windowManagerCommand: config.windowManagerCommand,
     },
     processes: Object.fromEntries(
@@ -671,6 +700,13 @@ function contentTypeFor(filePath) {
 
 function shutdown() {
   stopStack().finally(() => {
+    for (const client of wsServer.clients) {
+      client.terminate();
+    }
+    for (const socket of httpSockets) {
+      socket.destroy();
+    }
     server.close(() => process.exit(0));
+    setTimeout(() => process.exit(0), 2000).unref();
   });
 }
